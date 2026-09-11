@@ -650,10 +650,14 @@ let currentRecordPeopleMap = {};
 let currentNoteIndex = -1;
 let showLimit = 5;
 
+// 安全取整：localStorage 里若是脏值（undefined / NaN / 空），一律按 0 处理，
+// 否则版本号会变成 NaN，导致"版本一致"永远不成立、退出登录永远同步失败。
+function safeInt(v){const n=parseInt(v,10);return isNaN(n)?0:n;}
+
 function incLocalVersion() {
-  let v = parseInt(localStorage.getItem(BENDIBANBEN_KEY) || 0);
-  v++;
-  localStorage.setItem(BENDIBANBEN_KEY, v);
+  // 只有登录用户才自增（未登录时本地只是草稿，不参与云端同步）
+  if(!localStorage.getItem('yonghuID'))return;
+  localStorage.setItem(BENDIBANBEN_KEY, String(safeInt(localStorage.getItem(BENDIBANBEN_KEY)) + 1));
 }
 
 function generateUniqueId(){
@@ -889,8 +893,8 @@ function logout() {
   if (isLoggingOut) return;
   
   // 检查本地版本和云端版本
-  const localVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-  const cloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+  const localVersion = safeInt(localStorage.getItem('bendibanben'));
+  const cloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
   
   console.log(`退出登录检查: 本地版本=${localVersion}, 云端版本=${cloudVersion}`);
   
@@ -969,8 +973,8 @@ function logout() {
     checkCount++;
     
     // 检查本地版本和云端版本
-    const updatedLocalVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-    const updatedCloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+    const updatedLocalVersion = safeInt(localStorage.getItem('bendibanben'));
+    const updatedCloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
     
     console.log(`检查同步状态: 本地版本=${updatedLocalVersion}, 云端版本=${updatedCloudVersion}, 检查次数=${checkCount}`);
     
@@ -1101,8 +1105,8 @@ function retrySync() {
     checkCount++;
     
     // 检查本地版本和云端版本
-    const updatedLocalVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-    const updatedCloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+    const updatedLocalVersion = safeInt(localStorage.getItem('bendibanben'));
+    const updatedCloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
     
     console.log(`检查同步状态: 本地版本=${updatedLocalVersion}, 云端版本=${updatedCloudVersion}, 检查次数=${checkCount}`);
     
