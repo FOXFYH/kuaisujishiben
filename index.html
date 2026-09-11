@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
-<title>快速记事</title>
+<title>快速记事 v1.01</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding:6px;background:#f6f6f6;font-family:system-ui,sans-serif;max-width:420px;margin:0 auto}
@@ -553,6 +553,18 @@ button.star{background:#FFB800;color:#222;font-weight:bold}
   </div>
 </div>
 
+<!-- 顶层冲突处置对话框：同步 iframe 藏在后台时，弹窗在这里显示 -->
+<div id="topConflictModal" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99999;">
+  <div style="background:#fff;border-radius:12px;padding:18px;max-width:520px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,.25);font-family:inherit;">
+    <h3 id="topCfTitle" style="margin:0 0 10px;font-size:16px;color:#b71c1c;"></h3>
+    <pre id="topCfMsg" style="white-space:pre-wrap;font-size:13px;color:#333;margin:0 0 12px;font-family:inherit;"></pre>
+    <div id="topCfBtns" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- 版本徽章：让使用者随时能看到当前网页版本 -->
+<div id="verBadge" style="position:fixed;right:10px;bottom:10px;z-index:9998;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:3px 9px;border-radius:10px;pointer-events:none;">网页 v1.01</div>
+
 <!-- 原有后台 -->
 <div id="adminIframeContainer">
   <div id="iframeHeader">
@@ -616,8 +628,38 @@ window.addEventListener('message', function(e) {
   } else if (e.data.type === 'loginSyncReady') {
     // 接收同步iframe登录同步就绪通知
     console.log('同步iframe登录同步就绪');
+  } else if (e.data.type === 'kjsbConflict') {
+    // 同步面板（隐藏 iframe 内）报告冲突 → 在顶层弹出人工处置对话框
+    showTopConflict(e.data);
   }
 });
+
+/* ===== 顶层冲突处置对话框（配合 tongbu.html 的 kjsbConflict 消息） ===== */
+function showTopConflict(d) {
+  const modal = document.getElementById('topConflictModal');
+  if (!modal) return;
+  document.getElementById('topCfTitle').textContent =
+    d.code === 202 ? '版本账目对不上（202），请选择处理方式'
+      : d.code === 203 ? '本地有未上传的编辑（203），请选择处理方式'
+        : '云端版本更高（302），请选择处理方式';
+  document.getElementById('topCfMsg').textContent = (d.lines || []).join('\n');
+  const box = document.getElementById('topCfBtns');
+  box.innerHTML = '';
+  (d.options || []).forEach(function (opt, i) {
+    const b = document.createElement('button');
+    b.textContent = opt.label;
+    b.style.cssText = 'padding:10px 12px;border:none;border-radius:8px;font-size:14px;cursor:pointer;' +
+      (i === 0 ? 'background:#1a7f37;color:#fff;' : i === 1 ? 'background:#b71c1c;color:#fff;' : 'background:#eee;color:#333;');
+    b.onclick = function () {
+      modal.style.display = 'none';
+      try {
+        document.getElementById('syncIframe').contentWindow.postMessage({ type: 'kjsbConflictChoice', action: opt.action }, '*');
+      } catch (err) { console.error('处置选择回传失败:', err); }
+    };
+    box.appendChild(b);
+  });
+  modal.style.display = 'flex';
+}
 
 // 只刷新记录列表，不整页刷新
 function partialRefreshRecords() {
