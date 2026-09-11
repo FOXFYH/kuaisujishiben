@@ -661,6 +661,17 @@ function showTopConflict(d) {
   modal.style.display = 'flex';
 }
 
+/* ===== 版本徽章：实时显示 网页版本 + 本地版本号/云端账目号 ===== */
+function updateVerBadge() {
+  const b = document.getElementById('verBadge');
+  if (!b) return;
+  const lv = parseInt(localStorage.getItem('bendibanben')) || 0;
+  const cv = parseInt(localStorage.getItem('bediyunbanben')) || 0;
+  b.textContent = '网页 v1.01 · 本地版本 ' + lv + ' / 云端账目 ' + cv;
+}
+window.addEventListener('load', updateVerBadge);
+setInterval(updateVerBadge, 3000);
+
 // 只刷新记录列表，不整页刷新
 function partialRefreshRecords() {
   console.log('执行局部刷新');
