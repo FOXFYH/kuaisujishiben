@@ -631,6 +631,10 @@ window.addEventListener('message', function(e) {
   } else if (e.data.type === 'kjsbConflict') {
     // 同步面板（隐藏 iframe 内）报告冲突 → 在顶层弹出人工处置对话框
     showTopConflict(e.data);
+  } else if (e.data.type === 'OPEN_SYNC_PANEL') {
+    // 后台（houtai.html）请求打开同步面板
+    const c = document.getElementById('syncIframeContainer');
+    if (c) { c.style.display = 'block'; updateVerBadge(); }
   }
 });
 
