@@ -93,10 +93,11 @@ body {
     <div style="color:#b71c1c;margin-top:4px;">⚠️ 注意：本页的「上传/拉取」走的是另一张表（短信转发器），与记事同步用的「数据库」表不是同一个，不会动你的记事数据。</div>
   </div>
 
-  <div class="admin-top-buttons">
+  <div class="admin-top-buttons" style="flex-wrap:wrap;">
     <button class="admin-btn btn-primary" onclick="uploadAllLocalStorage()">📤 上传全量本地数据</button>
     <button class="admin-btn btn-success" onclick="pullAndOverwrite()">📥 拉取并覆盖本地</button>
     <button class="admin-btn btn-gray" onclick="refreshParentPage()">🔄 刷新主页</button>
+    <button class="admin-btn btn-red" style="background:#1890ff;" onclick="openSyncPanel()">🖥️ 打开同步面板</button>
   </div>
   <div class="admin-row">
     <div>
@@ -164,6 +165,20 @@ function loadLastPullResult() {
     raw: localStorage.getItem("lastCloudRaw") || "",
     useful: localStorage.getItem("lastCloudUseful") || ""
   };
+}
+
+// ============== 打开同步面板：通知主页面把同步窗口显示出来 ==============
+function openSyncPanel(){
+  try{
+    if (window.parent && window.parent !== window){
+      window.parent.postMessage({ type: 'OPEN_SYNC_PANEL' }, '*');
+      alert('✅ 已通知主页面打开同步面板（窗口会出现在主页面上）');
+    } else {
+      alert('本页面当前不在主页面框架内，无法代为打开。\n请在主页面点「立即同步」即可看到同步面板。');
+    }
+  }catch(e){
+    alert('打开失败：' + e.message);
+  }
 }
 
 // 刷新外层主页
