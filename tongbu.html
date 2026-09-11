@@ -600,12 +600,27 @@ function resolveConflict(action) {
     return;
   }
 
-  if (action === "align") {
-    setStatus("正在以云端为准对齐…", "info");
-  } else {
-    setStatus("正在以本地为准强制上传…", "info");
-  }
   conflictPaused = false;
+
+  if (action === "align") {
+    /* 以云端为准：云端数据已在 conflictData.r 里，直接本地对齐，不再往返服务端。
+     * 原因：脚本 1.00 对 203/302 + align 会原样退回 203/302，导致 弹窗→选以云端为准→再弹窗 死循环。
+     * 本地对齐绕开该问题；本地对不了时兜底走服务端（脚本 1.01 起会正确返回 301）。 */
+    const r = conflictData && conflictData.r;
+    conflictData = null;
+    if (r && r.yunxinxi && applyCloudData(r.yunbanben, r.yunxinxi)) {
+      setVersions(r.yunbanben);
+      notifyParentToRefresh();
+      setStatus("【对齐】已按云端为准，本地版本已修正为 " + toInt(r.yunbanben));
+      appendWsLog("✅ 用户选择以云端为准，已本地对齐（版本 " + toInt(r.yunbanben) + "）");
+    } else {
+      setStatus("正在以云端为准对齐…", "info");
+      doSync("align", false);
+    }
+    return;
+  }
+
+  setStatus("正在以本地为准强制上传…", "info");
   doSync(action, false);
 }
 
