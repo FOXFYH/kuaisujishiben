@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
-<title>记事本后台·全量同步</title>
+<title>记事本后台·全量同步 v1.01</title>
 <style>
 /* 后台面板专属样式 */
 body {
@@ -82,6 +82,17 @@ body {
 <body>
 <div class="admin-panel" id="adminPanel">
   <div class="admin-title">🔧 全量数据同步</div>
+
+  <!-- 版本信息面板：与主页面同源，直接读取同一份 localStorage -->
+  <div id="verPanel" style="background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.9;">
+    <div style="font-weight:bold;color:#1890ff;margin-bottom:4px;">📋 版本信息 <span id="verRefreshAt" style="font-weight:normal;color:#999;"></span></div>
+    <div>网页版本：<b>v1.01</b>（云端脚本版本以同步面板显示为准，每次脚本修改 +0.01）</div>
+    <div>本地版本号（bendibanben）：<b id="verLocal" style="color:#1a7f37;">读取中…</b></div>
+    <div>所知云端版本号（bediyunbanben）：<b id="verCloudAcc" style="color:#b45309;">读取中…</b></div>
+    <div>当前用户ID：<b id="verUser">读取中…</b>　｜　LSID：<b id="verLsid">读取中…</b></div>
+    <div style="color:#b71c1c;margin-top:4px;">⚠️ 注意：本页的「上传/拉取」走的是另一张表（短信转发器），与记事同步用的「数据库」表不是同一个，不会动你的记事数据。</div>
+  </div>
+
   <div class="admin-top-buttons">
     <button class="admin-btn btn-primary" onclick="uploadAllLocalStorage()">📤 上传全量本地数据</button>
     <button class="admin-btn btn-success" onclick="pullAndOverwrite()">📥 拉取并覆盖本地</button>
@@ -309,7 +320,24 @@ function initCloudView() {
 
 window.onload=function(){
   initCloudView();
+  refreshVerPanel();
+  setInterval(refreshVerPanel, 3000); // 每 3 秒自动刷新版本信息
 };
+
+// ============== 版本信息面板：读取与主页面共享的 localStorage ==============
+function toIntSafe(v){ const n=parseInt(v); return isNaN(n)?0:n; }
+function refreshVerPanel(){
+  try{
+    document.getElementById("verLocal").textContent = toIntSafe(localStorage.getItem("bendibanben"));
+    document.getElementById("verCloudAcc").textContent = toIntSafe(localStorage.getItem("bediyunbanben"));
+    document.getElementById("verUser").textContent = localStorage.getItem("yonghuID") || "未登录";
+    document.getElementById("verLsid").textContent = toIntSafe(localStorage.getItem("LSID")) || "-";
+    const t = new Date();
+    const p = function(x){ return String(x).padStart(2,"0"); };
+    document.getElementById("verRefreshAt").textContent =
+      "（更新于 " + p(t.getHours()) + ":" + p(t.getMinutes()) + ":" + p(t.getSeconds()) + "）";
+  }catch(e){ /* 面板显示失败不影响后台功能 */ }
+}
 </script>
 </body>
 </html>
