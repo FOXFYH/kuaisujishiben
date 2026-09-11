@@ -703,8 +703,8 @@ function logout() {
   if (isLoggingOut) return;
   
   // 检查本地版本和云端版本
-  const localVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-  const cloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+  const localVersion = safeInt(localStorage.getItem('bendibanben'));
+  const cloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
   
   console.log(`退出登录检查: 本地版本=${localVersion}, 云端版本=${cloudVersion}`);
   
@@ -789,8 +789,8 @@ function logout() {
     checkCount++;
     
     // 检查本地版本和云端版本
-    const updatedLocalVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-    const updatedCloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+    const updatedLocalVersion = safeInt(localStorage.getItem('bendibanben'));
+    const updatedCloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
     
     console.log(`检查同步状态: 本地版本=${updatedLocalVersion}, 云端版本=${updatedCloudVersion}, 检查次数=${checkCount}`);
     
@@ -887,8 +887,8 @@ function retrySync() {
     checkCount++;
     
     // 检查本地版本和云端版本
-    const updatedLocalVersion = parseInt(localStorage.getItem('bendibanben') || 0);
-    const updatedCloudVersion = parseInt(localStorage.getItem('bediyunbanben') || 0);
+    const updatedLocalVersion = safeInt(localStorage.getItem('bendibanben'));
+    const updatedCloudVersion = safeInt(localStorage.getItem('bediyunbanben'));
     
     console.log(`检查同步状态: 本地版本=${updatedLocalVersion}, 云端版本=${updatedCloudVersion}, 检查次数=${checkCount}`);
     
@@ -1018,9 +1018,15 @@ function getCurrentTrashKey() {
 }
 
 // 增加本地版本号
+// 安全取整：脏值一律按 0 处理，避免版本号变 NaN 后永远无法对齐
+function safeInt(v){const n=parseInt(v,10);return isNaN(n)?0:n;}
+
+// 【重要修复】原横版定义了 incLocalVersion 却从未调用过，
+// 导致横版里的任何编辑都不会让本地版本号 +1，
+// 同步时永远是「版本一致」→ 横版的改动静默丢失、根本传不上云端。
 function incLocalVersion() {
-  let v = parseInt(localStorage.getItem(BENDIBANBEN_KEY) || 0);
-  localStorage.setItem(BENDIBANBEN_KEY, v + 1);
+  if(!localStorage.getItem('yonghuID'))return;
+  localStorage.setItem(BENDIBANBEN_KEY, String(safeInt(localStorage.getItem(BENDIBANBEN_KEY)) + 1));
 }
 
 function getTrash(){try{return JSON.parse(localStorage.getItem(getCurrentTrashKey()))||[]}catch{return[]}}
@@ -1029,10 +1035,10 @@ function addToTrash(item){const t=getTrash();t.push(item);setTrash(t)}
 function addManyToTrash(items){const t=getTrash();t.push(...items);setTrash(t)}
 
 function getPeopleText(){return localStorage.getItem(PEOPLE_KEY)||"人1\n人2\n人3\n人4\n人5"}
-function setPeopleText(t){localStorage.setItem(PEOPLE_KEY,t)}
+function setPeopleText(t){incLocalVersion();localStorage.setItem(PEOPLE_KEY,t)}
 function getPeople(){return getPeopleText().split('\n').map(i=>i.trim()).filter(Boolean)}
 function getLeaderText(){return localStorage.getItem(LEADER_KEY)||"组长A\n组长B\n组长C"}
-function setLeaderText(t){localStorage.setItem(LEADER_KEY,t)}
+function setLeaderText(t){incLocalVersion();localStorage.setItem(LEADER_KEY,t)}
 function getLeaders(){return getLeaderText().split('\n').map(i=>i.trim()).filter(Boolean)}
 
 function getStatusText(){return localStorage.getItem(STATUS_KEY)||`出勤>上午>第一节>正常
@@ -1041,7 +1047,7 @@ function getStatusText(){return localStorage.getItem(STATUS_KEY)||`出勤>上午
 出勤>下午>第三节>正常
 请假>病假>居家>康复中
 请假>事假>外出>处理私事`}
-function setStatusText(t){localStorage.setItem(STATUS_KEY,t)}
+function setStatusText(t){incLocalVersion();localStorage.setItem(STATUS_KEY,t)}
 function getStatusTree(){
   const t={};
   getStatusText().split('\n').map(i=>i.trim()).filter(Boolean).forEach(line=>{
@@ -1052,7 +1058,7 @@ function getStatusTree(){
 }
 
 function getRecords(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}catch{return[]}}
-function setRecords(r){localStorage.setItem(STORAGE_KEY,JSON.stringify(r||[]))}
+function setRecords(r){incLocalVersion();localStorage.setItem(STORAGE_KEY,JSON.stringify(r||[]))}
 
 function loadLeaderSelect(){
   const s=document.getElementById('leaderSelect');s.innerHTML='';
