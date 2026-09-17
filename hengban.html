@@ -1263,7 +1263,7 @@ function showTrashPage(){
 
 function clearAllRecords(){if(!confirm('确定清空全部记录？'))return;const r=getRecords();addManyToTrash(r);localStorage.removeItem(STORAGE_KEY);renderNotes();renderAllNotes();}
 function clearStarRecords(){if(!confirm('确定清空收藏？'))return;const r=getRecords();r.forEach(i=>i.star=false);setRecords(r);renderNotes();renderStarNotes();}
-function clearTrash(){if(!confirm('确定清空回收站？'))return;localStorage.removeItem(TRASH_KEY);renderTrashNotes();}
+function clearTrash(){if(!confirm('确定清空回收站？'))return;localStorage.removeItem(getCurrentTrashKey());renderTrashNotes();}
 
 function restoreFromTrash(i){const t=getTrash();const it=t[i];if(!it)return;const r=getRecords();if(r.some(j=>j.id===it.id)){alert('已存在');return;}t.splice(i,1);setTrash(t);r.unshift(it);setRecords(r);renderTrashNotes();renderNotes();renderStarNotes();}
 function deleteFromTrash(i){if(!confirm('确定删除？'))return;const t=getTrash();t.splice(i,1);setTrash(t);renderTrashNotes();}

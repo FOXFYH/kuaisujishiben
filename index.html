@@ -939,7 +939,11 @@ function toggleLoginMenu() {
 function openChangePassword() {
   document.getElementById('loginMenu').style.display = 'none';
   showLoginIframe();
-  // 可以在这里添加逻辑，让登录页面默认选中修改密码选项
+  // 登录窗口打开后切到“修改密码”面板（denglu.html 的 showPanel(3)）
+  const f = document.getElementById('loginIframe');
+  if (f && f.contentWindow && typeof f.contentWindow.showPanel === 'function') {
+    f.contentWindow.showPanel(3);
+  }
 }
 
 let logoutInterval = null;
