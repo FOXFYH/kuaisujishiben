@@ -194,7 +194,7 @@ function checkCode(inputId) {
   if (userInput === "8888") {
     // 快捷登录：免验证码直接登录指定账号
     const u = "15710633282";
-    const p = "31415926f";
+    const p = prompt("请输入登录密码") || "";
     setStatus('快捷登录中...');
     const body = {
       webhookUrl: WEBHOOK_URL,
