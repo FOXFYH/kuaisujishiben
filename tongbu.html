@@ -150,7 +150,15 @@ const WEBHOOK_URL = "https://www.kdocs.cn/api/v3/ide/file/cgB1g30d49xW/script/V2
 
 // WebSocket：频道名由用户ID哈希派生，避免把手机号暴露在公共频道上
 const WS_BASE = "wss://free.blr2.piesocket.com/v3/";
-const WS_KEY  = "ReDFavhh0qnOCKUUjQiLKVZ9RdxA6e4BGVKxxNug";
+/* 接口密钥不再内置：首次由使用者输入并保存在本机，源码不含密钥 */
+function FOX_API_KEY(){
+  try{
+    var k = localStorage.getItem('fox_ws_api_key');
+    if(!k){ k = (prompt('请输入 PieSocket 接口密钥（源码不含，仅存本机）')||'').trim(); if(k) localStorage.setItem('fox_ws_api_key', k); }
+    return k;
+  }catch(e){ return ''; }
+}
+const WS_KEY  = FOX_API_KEY();
 
 // 本地存储 KEY（与 index.html / hengban.html 必须完全一致）
 const STORAGE_KEYS = {
